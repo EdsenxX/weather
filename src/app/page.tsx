@@ -51,7 +51,7 @@ export default function Home() {
     try {
       const data = await getWeatherData(city);
       setWeatherData(data);
-    } catch (err) {
+    } catch {
       setError(
         "Error al obtener los datos meteorológicos. Por favor, comprueba el nombre de la ciudad y vuelve a intentarlo."
       );
