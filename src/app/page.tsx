@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { getWeatherData, getMultipleWeatherData } from "@/lib/weather-api";
 import { WeatherCard } from "@/components/weather-card";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useWeatherStore } from "@/lib/store";
 import {
   Select,
   SelectContent,
@@ -20,35 +20,24 @@ import { Label } from "@/components/ui/label";
 
 // Initial list of cities
 const initialCities = [
-  "Madrid",
-  "Barcelona",
-  "Valencia",
-  "Sevilla",
-  "Zaragoza",
-  "Málaga",
-  "Murcia",
-  "Palma",
-  "Las Palmas",
-  "Bilbao",
+  "Ottawa",
+  "Washington DC",
+  "Ciudad de México",
+  "Panamá",
+  "Buenos Aires",
+  "Brasilia",
+  "Santiago de Chile",
+  "Bogotá",
+  "Lima",
+  "Caracas",
 ];
-
-interface WeatherData {
-  city: string;
-  country: string;
-  current: {
-    temperature: number;
-    description: string;
-    humidity: number;
-    windSpeed: number;
-    icon: string;
-  };
-}
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [weatherData, setWeatherData] = useState<WeatherData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { cities, addCity, updateCity, initializeCities } = useWeatherStore();
 
   // Filter states
   const [minTemp, setMinTemp] = useState<string | null>(null);
@@ -57,36 +46,20 @@ export default function Home() {
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      setLoading(true);
       try {
-        // Recuperar las ciudades guardadas del localStorage
-        const savedCities = JSON.parse(
-          localStorage.getItem("savedCities") || "[]"
-        );
-
-        // Combinar las ciudades iniciales con las guardadas, manteniendo el orden
-        const citiesToFetch = [
-          ...savedCities,
-          ...initialCities.filter((city) => !savedCities.includes(city)),
-        ];
-
-        const data = await getMultipleWeatherData(citiesToFetch);
-
-        // Ordenar los datos del clima según el orden de citiesToFetch
-        const orderedData = citiesToFetch
-          .map((city) =>
-            data.find((d) => d.city.toLowerCase() === city.toLowerCase())
-          )
-          .filter(Boolean) as WeatherData[];
-
-        setWeatherData(orderedData);
-        setLoading(false);
+        await initializeCities(initialCities);
       } catch (err) {
         setError("Error fetching initial weather data. Please try again.");
+      } finally {
         setLoading(false);
       }
     };
-    fetchInitialData();
-  }, []);
+
+    if (cities.length === 0) {
+      fetchInitialData();
+    }
+  }, [cities.length, initializeCities]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,62 +73,25 @@ export default function Home() {
     setError(null);
 
     try {
-      const filters = {
-        minTemp: minTemp !== "any" ? Number(minTemp) : undefined,
-        maxTemp: maxTemp !== "any" ? Number(maxTemp) : undefined,
-        weatherCondition:
-          weatherCondition !== "any" ? weatherCondition : undefined,
-      };
-
-      const newCityData = await getWeatherData(searchTerm.trim(), filters);
-
-      // Check if the city already exists in the list
-      const cityExists = weatherData.some(
-        (city) => city.city.toLowerCase() === newCityData.city.toLowerCase()
-      );
-
-      if (!cityExists) {
-        // Add the new city to the beginning of the list
-        setWeatherData((prevData) => [newCityData, ...prevData]);
-
-        // Save the updated list of cities to localStorage
-        const updatedCities = [
-          newCityData.city,
-          ...weatherData.map((data) => data.city),
-        ];
-        localStorage.setItem("savedCities", JSON.stringify(updatedCities));
-      } else {
-        // Update the existing city's data while maintaining order
-        setWeatherData((prevData) => {
-          const updatedData = prevData.map((city) =>
-            city.city.toLowerCase() === newCityData.city.toLowerCase()
-              ? newCityData
-              : city
-          );
-          return [
-            newCityData,
-            ...updatedData.filter(
-              (city) =>
-                city.city.toLowerCase() !== newCityData.city.toLowerCase()
-            ),
-          ];
-        });
-
-        // Update the order in localStorage
-        const updatedCities = [
-          newCityData.city,
-          ...weatherData
-            .map((data) => data.city)
-            .filter(
-              (city) => city.toLowerCase() !== newCityData.city.toLowerCase()
-            ),
-        ];
-        localStorage.setItem("savedCities", JSON.stringify(updatedCities));
-      }
-
+      await addCity(searchTerm.trim());
       setSearchTerm("");
     } catch (err) {
       setError("Error fetching weather data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async (cityName: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await updateCity(cityName);
+    } catch (err) {
+      setError(
+        `Error updating weather data for ${cityName}. Please try again.`
+      );
     } finally {
       setLoading(false);
     }
@@ -167,7 +103,7 @@ export default function Home() {
     setWeatherCondition("any");
   };
 
-  const filteredWeatherData = weatherData.filter((city) => {
+  const filteredWeatherData = cities.filter((city) => {
     if (
       minTemp &&
       minTemp !== "any" &&
@@ -328,21 +264,30 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWeatherData.map((city) => (
-              <Link
-                href={`/city/${encodeURIComponent(city.city)}`}
-                key={city.city}
-                className="transition-transform duration-300 ease-in-out hover:scale-105"
-              >
-                <WeatherCard
-                  city={city.city}
-                  country={city.country}
-                  temperature={city.current.temperature}
-                  description={city.current.description}
-                  humidity={city.current.humidity}
-                  windSpeed={city.current.windSpeed}
-                  icon={city.current.icon}
-                />
-              </Link>
+              <div key={city.city} className="relative group">
+                <Link
+                  href={`/city/${encodeURIComponent(city.city)}`}
+                  className="transition-transform duration-300 ease-in-out hover:scale-105 block"
+                >
+                  <WeatherCard
+                    city={city.city}
+                    country={city.country}
+                    temperature={city.current.temperature}
+                    description={city.current.description}
+                    humidity={city.current.humidity}
+                    windSpeed={city.current.windSpeed}
+                    icon={city.current.icon}
+                  />
+                </Link>
+                <Button
+                  onClick={() => handleRefresh(city.city)}
+                  className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  size="icon"
+                  variant="ghost"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
           </div>
 
