@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Weather App
 
-## Getting Started
+Puedes acceder al proyecto en producción en [https://weather.edsen.dev](https://weather.edsen.dev)
 
-First, run the development server:
+## Requisitos previos
+
+- Node.js (v22 o superior)
+- Yarn o npm
+- Contar con una API KEY de [OpenWeather](https://openweathermap.org)
+
+## Pasos para ejecutar el proyecto en desarrollo
+
+1. Clonar el repositorio:
+
+```bash
+git clone https://github.com/EdsenxX/weather
+```
+
+2. Instalar las dependencias:
+
+```bash
+cd weather-app
+npm install
+# or
+yarn install
+```
+
+3. Crear un archivo `.env` en la raíz del proyecto con el siguiente contenido:
+
+```bash
+NEXT_PUBLIC_OPENWEATHER_API_KEY=YOUR_API_KEY
+```
+
+4. Ejecutar el servidor de desarrollo:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Abrir [http://localhost:3000](http://localhost:3000) en tu navegador para ver el proyecto en acción.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pasos para ejecutar pruebas unitarias
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Instalar las dependencias de pruebas:
 
-## Learn More
+```bash
+npm install
+# or
+yarn install
+```
 
-To learn more about Next.js, take a look at the following resources:
+2. Ejecutar los tests unitarios:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test
+# or
+yarn test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Explicación de decisiones técnicas
