@@ -33,7 +33,7 @@ export function Footer() {
                 <Github className="w-5 h-5 text-muted-foreground hover:text-primary" />
               </Link>
               <Link
-                href="https://www.linkedin.com/feed/"
+                href="https://www.linkedin.com/in/edsen/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"

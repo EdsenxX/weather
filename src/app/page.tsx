@@ -114,11 +114,10 @@ export default function Home() {
                 className="animate-fade-in"
               >
                 {darkMode ? (
-                  <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                  <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all text-white" />
                 ) : (
-                  <MoonIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                  <MoonIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all " />
                 )}
-                <span className="sr-only">Cambiar tema</span>
               </Button>
             </div>
             <Search onSearch={handleSearch} />
