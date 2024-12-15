@@ -51,15 +51,35 @@ interface WeatherResponse {
   hourly: HourlyItem[];
 }
 
-export async function getWeatherData(city: string): Promise<WeatherResponse> {
+interface WeatherFilters {
+  minTemp?: number;
+  maxTemp?: number;
+  showRainingOnly?: boolean;
+}
+
+export async function getWeatherData(city: string, filters?: WeatherFilters) {
   try {
-    const currentWeatherResponse = await fetch(
-      `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=es`
-    );
-    if (!currentWeatherResponse.ok) {
-      throw new Error(`HTTP error! status: ${currentWeatherResponse.status}`);
+    let url = `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const currentWeatherData: WeatherData = await currentWeatherResponse.json();
+    const data = await response.json();
+
+    // Apply filters
+    if (filters?.minTemp && data.main.temp < filters.minTemp) {
+      throw new Error("Temperature below minimum");
+    }
+    if (filters?.maxTemp && data.main.temp > filters.maxTemp) {
+      throw new Error("Temperature above maximum");
+    }
+    if (
+      filters?.showRainingOnly &&
+      !data.weather[0].description.toLowerCase().includes("lluvia")
+    ) {
+      throw new Error("No rain in this city");
+    }
 
     const forecastResponse = await fetch(
       `${BASE_URL}/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=es`
@@ -70,14 +90,14 @@ export async function getWeatherData(city: string): Promise<WeatherResponse> {
     const forecastData: ForecastData = await forecastResponse.json();
 
     return {
-      city: currentWeatherData.name,
-      country: currentWeatherData.sys.country,
+      city: data.name,
+      country: data.sys.country,
       current: {
-        temperature: Math.round(currentWeatherData.main.temp),
-        description: currentWeatherData.weather[0].description,
-        humidity: currentWeatherData.main.humidity,
-        windSpeed: currentWeatherData.wind.speed,
-        icon: currentWeatherData.weather[0].icon,
+        temperature: Math.round(data.main.temp),
+        description: data.weather[0].description,
+        humidity: data.main.humidity,
+        windSpeed: data.wind.speed,
+        icon: data.weather[0].icon,
       },
       forecast: forecastData.list
         .filter((_, index: number) => index % 8 === 0)
@@ -104,6 +124,17 @@ export async function getWeatherData(city: string): Promise<WeatherResponse> {
     };
   } catch (error) {
     console.error("Error fetching weather data:", error);
-    throw error; // Re-throw the error so it can be caught in the component
+    throw error;
+  }
+}
+
+export async function getMultipleWeatherData(cities: string[]) {
+  try {
+    const weatherPromises = cities.map((city) => getWeatherData(city));
+    const weatherData = await Promise.all(weatherPromises);
+    return weatherData;
+  } catch (error) {
+    console.error("Error fetching multiple weather data:", error);
+    throw error;
   }
 }
