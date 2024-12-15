@@ -49,7 +49,7 @@ export default function Home() {
       setLoading(true);
       try {
         await initializeCities(initialCities);
-      } catch (err) {
+      } catch {
         setError("Error fetching initial weather data. Please try again.");
       } finally {
         setLoading(false);
@@ -75,7 +75,7 @@ export default function Home() {
     try {
       await addCity(searchTerm.trim());
       setSearchTerm("");
-    } catch (err) {
+    } catch {
       setError("Error fetching weather data. Please try again.");
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export default function Home() {
 
     try {
       await updateCity(cityName);
-    } catch (err) {
+    } catch{
       setError(
         `Error updating weather data for ${cityName}. Please try again.`
       );

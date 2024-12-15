@@ -57,15 +57,15 @@ interface WeatherFilters {
   showRainingOnly?: boolean;
 }
 
-export async function getWeatherData(city: string, filters?: WeatherFilters) {
+export async function getWeatherData(city: string, filters?: WeatherFilters): Promise<WeatherResponse> {
   try {
-    let url = `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
+    const url = `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
 
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
+    const data: WeatherData = await response.json();
 
     // Apply filters
     if (filters?.minTemp && data.main.temp < filters.minTemp) {
