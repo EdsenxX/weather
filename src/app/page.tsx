@@ -1,101 +1,167 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { CurrentWeather } from "@/components/current-weather";
+import { Forecast } from "@/components/forecast";
+import { Search } from "@/components/search";
+import { WeatherBackground } from "@/components/weather-background";
+import { HourlyTable } from "@/components/hourly-table";
+import { Footer } from "@/components/footer";
+import { getWeatherData } from "@/lib/weather-api";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+interface WeatherData {
+  city: string;
+  country: string;
+  current: {
+    temperature: number;
+    description: string;
+    humidity: number;
+    windSpeed: number;
+    icon: string;
+  };
+  forecast: Array<{
+    date: string;
+    temperature: number;
+    description: string;
+    icon: string;
+  }>;
+  hourly: Array<{
+    hour: string;
+    temperature: number;
+    description: string;
+    windSpeed: number;
+    rainProbability: number;
+    icon: string;
+  }>;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [location, setLocation] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const fetchWeatherData = async (city: string = location) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getWeatherData(city);
+      setWeatherData(data);
+    } catch (err) {
+      setError(
+        "Error al obtener los datos meteorológicos. Por favor, comprueba el nombre de la ciudad y vuelve a intentarlo."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLocation = async () => {
+    const res = await fetch("/api/get-location");
+    const data = await res.json();
+    if (!data.city) setLocation("Villa de alvarez, Colima");
+    const location = data.city;
+    setLocation(location);
+  };
+
+  const handleInitPage = async () => {
+    if (location) {
+      await fetchWeatherData();
+    } else {
+      await fetchLocation();
+    }
+  };
+
+  useEffect(() => {
+    handleInitPage();
+  }, [location]);
+
+  const handleSearch = (city: string) => {
+    fetchWeatherData(city);
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle("dark");
+  };
+
+  return (
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${
+        darkMode ? "dark" : ""
+      }`}
+    >
+      <main className="flex-grow">
+        <div className="relative overflow-hidden">
+          {weatherData && (
+            <WeatherBackground
+              weatherCondition={weatherData.current.description}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          )}
+          <div className="container mx-auto px-4 py-8 relative z-10">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold text-primary animate-fade-in">
+                Weather App
+              </h1>
+              <Button
+                onClick={toggleDarkMode}
+                variant="outline"
+                size="icon"
+                className="animate-fade-in"
+              >
+                {darkMode ? (
+                  <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                ) : (
+                  <MoonIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+                )}
+                <span className="sr-only">Cambiar tema</span>
+              </Button>
+            </div>
+            <Search onSearch={handleSearch} />
+            {loading && (
+              <p className="text-center text-primary animate-pulse">
+                Cargando datos meteorológicos...
+              </p>
+            )}
+            {error && (
+              <p className="text-center text-red-500 animate-fade-in">
+                {error}
+              </p>
+            )}
+            {weatherData && (
+              <div className="space-y-8 animate-fade-in">
+                <CurrentWeather
+                  city={weatherData.city}
+                  country={weatherData.country}
+                  temperature={weatherData.current.temperature}
+                  description={weatherData.current.description}
+                  humidity={weatherData.current.humidity}
+                  windSpeed={weatherData.current.windSpeed}
+                  icon={weatherData.current.icon}
+                />
+              </div>
+            )}
+          </div>
         </div>
+        {weatherData && (
+          <div className="container mx-auto px-4 py-8">
+            <Forecast forecast={weatherData.forecast} />
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Pronóstico por Hora</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <HourlyTable data={weatherData.hourly} />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Footer />
     </div>
   );
 }
