@@ -1,8 +1,5 @@
 import Image from "next/image";
-
-interface WeatherBackgroundProps {
-  weatherCondition: string;
-}
+import { WeatherBackgroundProps } from "@/interfaces/weather-background";
 
 const backgroundData = [
   {

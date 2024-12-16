@@ -8,19 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Wind, Droplets } from "lucide-react";
 import Image from "next/image";
-
-interface HourlyData {
-  hour: string;
-  temperature: number;
-  description: string;
-  windSpeed: number;
-  rainProbability: number;
-  icon: string;
-}
-
-interface HourlyTableProps {
-  data: HourlyData[];
-}
+import { HourlyTableProps } from "@/interfaces/hourly-table";
 
 export function HourlyTable({ data }: HourlyTableProps) {
   return (

@@ -2,10 +2,7 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SearchIcon } from 'lucide-react'
-
-interface SearchProps {
-  onSearch: (city: string) => void
-}
+import { SearchProps } from "@/interfaces/search";
 
 export function Search({ onSearch }: SearchProps) {
   const [city, setCity] = useState("")

@@ -1,16 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Wind } from "lucide-react";
 import Image from "next/image";
-
-interface WeatherCardProps {
-  city: string;
-  country: string;
-  temperature: number;
-  description: string;
-  humidity: number;
-  windSpeed: number;
-  icon: string;
-}
+import { WeatherCardProps } from "@/interfaces/weather-card";
 
 export function WeatherCard({
   city,

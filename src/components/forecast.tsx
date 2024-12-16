@@ -1,17 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-
-interface ForecastDay {
-  date: string;
-  temperature: number;
-  description: string;
-  icon: string;
-}
-
-interface ForecastProps {
-  forecast: ForecastDay[];
-}
+import { ForecastProps } from "@/interfaces/weather";
 
 export function Forecast({ forecast }: ForecastProps) {
   return (

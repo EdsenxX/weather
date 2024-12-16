@@ -2,62 +2,9 @@ const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
 const BASE_URL = "https://api.openweathermap.org/data/2.5";
 
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { WeatherData, WeatherResponse, WeatherFilters, ForecastData, ForecastItem } from "@/interfaces/weather";
 
-interface WeatherData {
-  name: string;
-  sys: { country: string };
-  main: { temp: number; humidity: number };
-  weather: { description: string; icon: string }[];
-  wind: { speed: number };
-}
-
-interface ForecastData {
-  list: ForecastItem[];
-}
-
-interface ForecastItem {
-  dt: number;
-  main: { temp: number };
-  weather: { description: string; icon: string }[];
-  wind: { speed: number };
-  pop: number;
-}
-
-interface HourlyItem {
-  hour: string;
-  temperature: number;
-  description: string;
-  windSpeed: number;
-  rainProbability: number;
-  icon: string;
-}
-
-interface WeatherResponse {
-  city: string;
-  country: string;
-  current: {
-    temperature: number;
-    description: string;
-    humidity: number;
-    windSpeed: number;
-    icon: string;
-  };
-  forecast: {
-    date: string;
-    temperature: number;
-    description: string;
-    icon: string;
-  }[];
-  hourly: HourlyItem[];
-}
-
-interface WeatherFilters {
-  minTemp?: number;
-  maxTemp?: number;
-  showRainingOnly?: boolean;
-}
-
-export async function getWeatherData(city: string, filters?: WeatherFilters): Promise<WeatherResponse> {
+export async function getWeatherData(city: string, filters?: WeatherFilters): Promise<WeatherData> {
   try {
     const url = `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
 
@@ -65,7 +12,7 @@ export async function getWeatherData(city: string, filters?: WeatherFilters): Pr
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data: WeatherData = await response.json();
+    const data: WeatherResponse = await response.json();
 
     // Apply filters
     if (filters?.minTemp && data.main.temp < filters.minTemp) {
