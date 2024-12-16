@@ -49,7 +49,7 @@ export default function Home() {
       setLoading(true);
       try {
         await initializeCities(initialCities);
-      } catch (err) {
+      } catch {
         setError("Error fetching initial weather data. Please try again.");
       } finally {
         setLoading(false);
@@ -75,7 +75,7 @@ export default function Home() {
     try {
       await addCity(searchTerm.trim());
       setSearchTerm("");
-    } catch (err) {
+    } catch {
       setError("Error fetching weather data. Please try again.");
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export default function Home() {
 
     try {
       await updateCity(cityName);
-    } catch (err) {
+    } catch {
       setError(
         `Error updating weather data for ${cityName}. Please try again.`
       );
@@ -104,9 +104,9 @@ export default function Home() {
   };
 
   const filteredWeatherData = cities.filter((city) => {
-    if (minTemp !== "any" && city.current.temperature < Number(minTemp))
+    if (minTemp !== "any" && city.current.temperature < parseInt(minTemp))
       return false;
-    if (maxTemp !== "any" && city.current.temperature > Number(maxTemp))
+    if (maxTemp !== "any" && city.current.temperature > parseInt(maxTemp))
       return false;
     if (weatherCondition !== "any") {
       const description = city.current.description.toLowerCase();

@@ -84,7 +84,13 @@ describe('Home component', () => {
     render(<Home />);
 
     const minTempSelect = screen.getByLabelText('Temperatura Mínima');
-    fireEvent.change(minTempSelect, { target: { value: '10' } });
+    
+    // Open the select dropdown
+    fireEvent.click(minTempSelect);
+    
+    // Select the '10°C' option
+    const option10C = screen.getByRole('option', { name: '10°C' });
+    fireEvent.click(option10C);
 
     await waitFor(() => {
       expect(screen.getByText('Madrid, ES')).toBeInTheDocument();
@@ -92,7 +98,9 @@ describe('Home component', () => {
     });
 
     // Reset filter
-    fireEvent.change(minTempSelect, { target: { value: 'any' } });
+    fireEvent.click(minTempSelect);
+    const optionAny = screen.getByRole('option', { name: 'Cualquiera' });
+    fireEvent.click(optionAny);
 
     await waitFor(() => {
       expect(screen.getByText('Madrid, ES')).toBeInTheDocument();
@@ -104,7 +112,13 @@ describe('Home component', () => {
     render(<Home />);
 
     const maxTempSelect = screen.getByLabelText('Temperatura Máxima');
-    fireEvent.change(maxTempSelect, { target: { value: '20' } });
+    
+    // Open the select dropdown
+    fireEvent.click(maxTempSelect);
+    
+    // Select the '20°C' option
+    const option20C = screen.getByRole('option', { name: '20°C' });
+    fireEvent.click(option20C);
 
     await waitFor(() => {
       expect(screen.queryByText('Madrid, ES')).not.toBeInTheDocument();
@@ -112,7 +126,9 @@ describe('Home component', () => {
     });
 
     // Reset filter
-    fireEvent.change(maxTempSelect, { target: { value: 'any' } });
+    fireEvent.click(maxTempSelect);
+    const optionAny = screen.getByRole('option', { name: 'Cualquiera' });
+    fireEvent.click(optionAny);
 
     await waitFor(() => {
       expect(screen.getByText('Madrid, ES')).toBeInTheDocument();
