@@ -26,10 +26,6 @@ export default function CityPage({
     return city.city.toLowerCase() === nameFormatted.toLowerCase();
   });
 
-  console.log(cities);
-  console.log(name);
-  console.log(cityData);
-
   if (!cityData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">

@@ -20,16 +20,16 @@ import { Label } from "@/components/ui/label";
 
 // Initial list of cities
 const initialCities = [
-  "Ottawa",
-  "Washington DC",
-  "Ciudad de México",
-  "Panamá",
-  "Buenos Aires",
-  "Brasilia",
-  "Santiago de Chile",
-  "Bogotá",
-  "Lima",
-  "Caracas",
+  "Madrid",
+  "Barcelona",
+  "Valencia",
+  "Sevilla",
+  "Zaragoza",
+  "Málaga",
+  "Murcia",
+  "Palma",
+  "Las Palmas",
+  "Bilbao",
 ];
 
 export default function Home() {
@@ -40,8 +40,8 @@ export default function Home() {
   const { cities, addCity, updateCity, initializeCities } = useWeatherStore();
 
   // Filter states
-  const [minTemp, setMinTemp] = useState<string | null>(null);
-  const [maxTemp, setMaxTemp] = useState<string | null>(null);
+  const [minTemp, setMinTemp] = useState<string>("any");
+  const [maxTemp, setMaxTemp] = useState<string>("any");
   const [weatherCondition, setWeatherCondition] = useState<string>("any");
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Home() {
       setLoading(true);
       try {
         await initializeCities(initialCities);
-      } catch {
+      } catch (err) {
         setError("Error fetching initial weather data. Please try again.");
       } finally {
         setLoading(false);
@@ -75,7 +75,7 @@ export default function Home() {
     try {
       await addCity(searchTerm.trim());
       setSearchTerm("");
-    } catch {
+    } catch (err) {
       setError("Error fetching weather data. Please try again.");
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export default function Home() {
 
     try {
       await updateCity(cityName);
-    } catch{
+    } catch (err) {
       setError(
         `Error updating weather data for ${cityName}. Please try again.`
       );
@@ -98,23 +98,15 @@ export default function Home() {
   };
 
   const clearFilters = () => {
-    setMinTemp(null);
-    setMaxTemp(null);
+    setMinTemp("any");
+    setMaxTemp("any");
     setWeatherCondition("any");
   };
 
   const filteredWeatherData = cities.filter((city) => {
-    if (
-      minTemp &&
-      minTemp !== "any" &&
-      city.current.temperature < Number(minTemp)
-    )
+    if (minTemp !== "any" && city.current.temperature < Number(minTemp))
       return false;
-    if (
-      maxTemp &&
-      maxTemp !== "any" &&
-      city.current.temperature > Number(maxTemp)
-    )
+    if (maxTemp !== "any" && city.current.temperature > Number(maxTemp))
       return false;
     if (weatherCondition !== "any") {
       const description = city.current.description.toLowerCase();
@@ -185,7 +177,7 @@ export default function Home() {
                 <Label htmlFor="minTemp">Temperatura Mínima</Label>
                 <Select
                   onValueChange={(value) => setMinTemp(value)}
-                  value={minTemp || "any"}
+                  value={minTemp}
                 >
                   <SelectTrigger id="minTemp">
                     <SelectValue placeholder="Seleccionar" />
@@ -204,7 +196,7 @@ export default function Home() {
                 <Label htmlFor="maxTemp">Temperatura Máxima</Label>
                 <Select
                   onValueChange={(value) => setMaxTemp(value)}
-                  value={maxTemp || "any"}
+                  value={maxTemp}
                 >
                   <SelectTrigger id="maxTemp">
                     <SelectValue placeholder="Seleccionar" />
@@ -262,41 +254,49 @@ export default function Home() {
             </p>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWeatherData.map((city) => (
-              <div key={city.city} className="relative group">
-                <Link
-                  href={`/city/${encodeURIComponent(city.city)}`}
-                  className="transition-transform duration-300 ease-in-out hover:scale-105 block"
-                >
-                  <WeatherCard
-                    city={city.city}
-                    country={city.country}
-                    temperature={city.current.temperature}
-                    description={city.current.description}
-                    humidity={city.current.humidity}
-                    windSpeed={city.current.windSpeed}
-                    icon={city.current.icon}
-                  />
-                </Link>
-                <Button
-                  onClick={() => handleRefresh(city.city)}
-                  className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  size="icon"
-                  variant="ghost"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          {filteredWeatherData.length === 0 && !loading && (
+          {cities.length === 0 ? (
             <p className="text-center mt-8 text-gray-600 dark:text-gray-400">
-              No se encontraron ciudades que coincidan con los filtros
-              seleccionados.
+              No cities added yet. Search for a city to get started.
             </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredWeatherData.map((city) => (
+                <div key={city.city} className="relative group">
+                  <Link
+                    href={`/city/${encodeURIComponent(city.city)}`}
+                    className="transition-transform duration-300 ease-in-out hover:scale-105 block"
+                  >
+                    <WeatherCard
+                      city={city.city}
+                      country={city.country}
+                      temperature={city.current.temperature}
+                      description={city.current.description}
+                      humidity={city.current.humidity}
+                      windSpeed={city.current.windSpeed}
+                      icon={city.current.icon}
+                    />
+                  </Link>
+                  <Button
+                    onClick={() => handleRefresh(city.city)}
+                    className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
+
+          {filteredWeatherData.length === 0 &&
+            cities.length > 0 &&
+            !loading && (
+              <p className="text-center mt-8 text-gray-600 dark:text-gray-400">
+                No se encontraron ciudades que coincidan con los filtros
+                seleccionados.
+              </p>
+            )}
         </div>
       </main>
       <Footer />
